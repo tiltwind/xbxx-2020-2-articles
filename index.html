@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六2学生作文集</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .students-list {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .students-list h2 {
+            margin-bottom: 15px;
+            color: #34495e;
+            font-size: 1.5em;
+        }
+        
+        .student-name {
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .student-name:hover {
+            background-color: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+        
+        .student-name.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .essay-content {
+            flex: 2;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            min-height: 80vh;
+        }
+        
+        .essay-content h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .markdown-body {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        
+        .markdown-body h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .markdown-body p {
+            margin-bottom: 15px;
+            text-indent: 2em;
+        }
+        
+        .markdown-body strong {
+            font-weight: bold;
+        }
+        
+        .markdown-body em {
+            font-style: italic;
+        }
+        
+        .print-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 1.1em;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .print-button:hover {
+            background-color: #229954;
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+            }
+            
+            .students-list {
+                display: none;
+            }
+            
+            .main-content {
+                gap: 0;
+            }
+            
+            .essay-content {
+                box-shadow: none;
+                padding: 0;
+                min-height: auto;
+            }
+            
+            .print-button {
+                display: none;
+            }
+            
+            @page {
+                margin: 2cm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>六2学生作文集</h1>
+        </header>
+        
+        <div class="main-content">
+            <div class="students-list">
+                <h2>学生列表</h2>
+                <div id="students-container"></div>
+            </div>
+            
+            <div class="essay-content">
+                <h2 id="essay-title">请选择一篇作文</h2>
+                <div id="essay-body" class="markdown-body">
+                    <p>请从左侧学生列表中选择一位学生，查看其作文内容。</p>
+                </div>
+                <button class="print-button" onclick="window.print()">打印作文</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 简单的 Markdown 解析函数
+        function parseMarkdown(text) {
+            // 解析标题
+            text = text.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+            text = text.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+            text = text.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+            
+            // 解析粗体和斜体
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // 解析段落
+            text = text.replace(/^(?!<h|\s*$)(.*$)/gm, '<p>$1</p>');
+            
+            return text;
+        }
+        
+        // 加载学生列表
+        async function loadStudents() {
+            try {
+                const response = await fetch('students.json');
+                const students = await response.json();
+                const container = document.getElementById('students-container');
+                
+                students.forEach(student => {
+                    const div = document.createElement('div');
+                    div.className = 'student-name';
+                    div.textContent = student;
+                    div.addEventListener('click', () => {
+                        // 移除其他学生的 active 类
+                        document.querySelectorAll('.student-name').forEach(s => s.classList.remove('active'));
+                        // 添加当前学生的 active 类
+                        div.classList.add('active');
+                        // 加载并显示作文
+                        loadEssay(student);
+                    });
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error('加载学生列表失败:', error);
+            }
+        }
+        
+        // 加载作文
+        async function loadEssay(studentName) {
+            try {
+                const fileName = `${studentName}.md`;
+                const response = await fetch(`markdown/${fileName}`);
+                const markdownText = await response.text();
+                
+                // 解析 Markdown
+                const htmlContent = parseMarkdown(markdownText);
+                
+                // 更新页面内容
+                document.getElementById('essay-title').textContent = studentName + '的作文';
+                document.getElementById('essay-body').innerHTML = htmlContent;
+            } catch (error) {
+                console.error('加载作文失败:', error);
+                document.getElementById('essay-title').textContent = '加载失败';
+                document.getElementById('essay-body').innerHTML = '<p>无法加载该学生的作文，请稍后重试。</p>';
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStudents();
+        });
+    </script>
+</body>
+</html>
