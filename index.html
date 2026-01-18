@@ -53,10 +53,44 @@
             overflow-y: auto;
         }
         
-        .students-list h2 {
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 15px;
+        }
+        
+        .students-list h2 {
+            margin: 0;
             color: #34495e;
             font-size: 1.5em;
+        }
+        
+        .toggle-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .students-list.collapsed #students-container {
+            display: none;
+        }
+        
+        .students-list.collapsed .toggle-button {
+            transform: rotate(-90deg);
         }
         
         .student-name {
@@ -186,7 +220,10 @@
         
         <div class="main-content">
             <div class="students-list">
-                <h2>学生列表</h2>
+                <div class="list-header">
+                    <h2>学生列表</h2>
+                    <button class="toggle-button" id="toggle-list" onclick="toggleStudentsList()">▼</button>
+                </div>
                 <div id="students-container"></div>
             </div>
             
@@ -218,6 +255,12 @@
             return text;
         }
         
+        // 折叠/展开学生列表的函数
+        function toggleStudentsList() {
+            const studentsList = document.querySelector('.students-list');
+            studentsList.classList.toggle('collapsed');
+        }
+        
         // 加载学生列表
         async function loadStudents() {
             try {
@@ -236,6 +279,8 @@
                         div.classList.add('active');
                         // 加载并显示作文
                         loadEssay(student);
+                        // 选择学生后自动折叠列表
+                        toggleStudentsList();
                     });
                     container.appendChild(div);
                 });
