@@ -162,6 +162,16 @@
                 display: none;
             }
             
+            /* 在每篇文章标题前添加分页符 */
+            .markdown-body h1 {
+                page-break-before: always;
+            }
+            
+            /* 确保第一篇文章不在标题前分页 */
+            .markdown-body h1:first-of-type {
+                page-break-before: avoid;
+            }
+            
             @page {
                 margin: 2cm;
             }
